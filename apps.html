@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a192f">
+  <title>NEG EXPRESS - Dispatch Request</title>
+  
+  <link rel="manifest" href="data:application/json,{
+    'name': 'NEG EXPRESS',
+    'short_name': 'NEG EXPRESS',
+    'start_url': '.',
+    'display': 'standalone',
+    'background_color': '#0a192f',
+    'theme_color': '#0a192f'
+  }">
+
+  <style>
+    :root {
+      --primary-blue: #0052cc;
+      --navy-dark: #0a192f;
+      --accent-gold: #f59e0b;
+      --bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      margin: 0;
+      padding: 16px;
+      color: var(--text);
+    }
+
+    .card {
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border-radius: 24px;
+      box-shadow: 0 20px 25px -5px rgba(10, 25, 47, 0.1), 0 8px 10px -6px rgba(10, 25, 47, 0.04);
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+
+    .brand-header-banner {
+      background: linear-gradient(135deg, var(--navy-dark) 0%, #1e3a8a 100%);
+      padding: 28px 20px 22px 20px;
+      text-align: center;
+      position: relative;
+    }
+
+    .btn-fast-track-header {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.15);
+      padding: 8px 16px;
+      border-radius: 20px;
+      color: var(--accent-gold);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .btn-fast-track-header:hover {
+      background: rgba(245, 158, 11, 0.25);
+      border-color: var(--accent-gold);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+    }
+
+    .brand-title {
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      margin: 0;
+      text-transform: uppercase;
+    }
+
+    .brand-title span { color: var(--accent-gold); }
+
+    .brand-tagline {
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+
+    .form-container { padding: 24px 20px; }
+    .form-group { margin-bottom: 18px; }
+    label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 13px; color: var(--navy-dark); }
+
+    .vehicle-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .vehicle-option {
+      background: #f8fafc;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 10px 4px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .vehicle-option .icon { font-size: 22px; display: block; margin-bottom: 4px; }
+    .vehicle-option .name { font-size: 11px; font-weight: 700; color: #475569; }
+
+    .vehicle-option.selected {
+      border-color: var(--primary-blue);
+      background: #eff6ff;
+      box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.15);
+    }
+
+    .vehicle-option.selected .name { color: var(--primary-blue); }
+
+    input, select {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      box-sizing: border-box;
+      font-size: 15px;
+      background-color: #f8fafc;
+      transition: all 0.2s ease;
+      color: var(--text);
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary-blue);
+      background-color: #ffffff;
+      box-shadow: 0 0 0 4px rgba(0, 82, 204, 0.12);
+    }
+
+    optgroup { font-weight: 700; color: var(--primary-blue); }
+
+    .fare-box {
+      background: #f8fafc;
+      border: 2px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .fare-label { font-size: 13px; font-weight: 700; text-transform: uppercase; color: #64748b; }
+    .fare-amount { font-size: 26px; font-weight: 900; color: var(--primary-blue); }
+
+    .btn-submit {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--primary-blue) 0%, #003db3 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 82, 204, 0.3);
+      transition: all 0.2s ease;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-submit:hover {
+      background: linear-gradient(135deg, #0041a8 0%, #002d85 100%);
+      transform: translateY(-1px);
+    }
+
+    .btn-submit:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; transform: none; }
+
+    .tracking-card {
+      display: none;
+      margin-top: 20px;
+      padding: 18px;
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      border-radius: 14px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      background: var(--accent-gold);
+      color: #ffffff;
+    }
+
+    .btn-action {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+      padding: 12px;
+      margin-top: 10px;
+      color: white;
+      border-radius: 10px;
+      font-weight: 700;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .wa-sender { background: #25D366; }
+    .wa-receiver { background: #075e54; }
+    .btn-track { background: var(--navy-dark); color: #ffffff; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="brand-header-banner">
+      <a href="tracking.html" id="fastTrackLink" class="btn-fast-track-header" title="Go to Tracking Page">
+        <span>🏍️</span><span>🚚</span> Fast Track Dispatch
+      </a>
+      <h1 class="brand-title">NEG <span>EXPRESS</span></h1>
+      <div class="brand-tagline">On-Demand Parcel Delivery</div>
+    </div>
+    
+    <div class="form-container">
+      <form id="dispatchForm">
+        
+        <div class="form-group">
+          <label>Select Vehicle Type</label>
+          <div class="vehicle-grid">
+            <div class="vehicle-option selected" data-value="Motorcycle" onclick="selectVehicle('Motorcycle', this)">
+              <span class="icon">🏍️</span>
+              <span class="name">Bike</span>
+            </div>
+            <div class="vehicle-option" data-value="Sedan" onclick="selectVehicle('Sedan', this)">
+              <span class="icon">🚗</span>
+              <span class="name">Sedan</span>
+            </div>
+            <div class="vehicle-option" data-value="Van" onclick="selectVehicle('Van', this)">
+              <span class="icon">🚐</span>
+              <span class="name">Van</span>
+            </div>
+            <div class="vehicle-option" data-value="Truck" onclick="selectVehicle('Truck', this)">
+              <span class="icon">🚚</span>
+              <span class="name">Truck</span>
+            </div>
+          </div>
+          <input type="hidden" id="vehicleType" value="Motorcycle" required>
+        </div>
+
+        <div class="form-group">
+          <label for="pickupSelect">Pickup Location</label>
+          <select id="pickupSelect" required>
+            <option value="" disabled selected>Select Pickup Zone / Town</option>
+            
+            <optgroup label="Adenta & La Nkwantanang">
+              <option value="Adenta">Adenta</option>
+              <option value="Frafraha">Frafraha / Pantang</option>
+              <option value="Dodowa">Dodowa / Ayikuma</option>
+            </optgroup>
+
+            <optgroup label="Madina & Ga East">
+              <option value="Madina">Madina</option>
+              <option value="Haatso">Haatso / Agbogba</option>
+              <option value="Dome">Dome / Kwabenya</option>
+            </optgroup>
+
+            <optgroup label="East Legon & Ayawaso">
+              <option value="East Legon">East Legon / Shiashie</option>
+              <option value="Legon Campus">Legon Campus / UG</option>
+              <option value="Airport Residential">Airport / Roman Ridge</option>
+              <option value="Dzorwulu">Dzorwulu / Abelemkpe</option>
+            </optgroup>
+
+            <optgroup label="Accra Central & Metro">
+              <option value="Circle">Circle / Ridge</option>
+              <option value="Osu">Osu / Labone / Cantonments</option>
+              <option value="Accra Central">Accra Central / Makola</option>
+              <option value="La">La / Tse Addo</option>
+            </optgroup>
+
+            <optgroup label="Spintex & Tema Zone">
+              <option value="Spintex">Spintex Road</option>
+              <option value="Teshie">Teshie / Nungua</option>
+              <option value="Tema">Tema (Comm 1-25)</option>
+              <option value="Ashaiman">Ashaiman</option>
+              <option value="Kpone">Kpone / Prampram</option>
+            </optgroup>
+
+            <optgroup label="Ga West & South">
+              <option value="Achimota">Achimota / Lapaz</option>
+              <option value="Amasaman">Amasaman / Pokuase</option>
+              <option value="Dansoman">Dansoman / Korle Bu</option>
+              <option value="Weija">Weija / Kasoa Border</option>
+            </optgroup>
+
+            <optgroup label="Custom Area">
+              <option value="Other">Other Location</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="form-group" id="customPickupGroup" style="display: none;">
+          <label for="pickupCustom">Specific Address / Sub-town</label>
+          <input type="text" id="pickupCustom" placeholder="e.g. Oyibi near Valley View">
+        </div>
+
+        <div class="form-group">
+          <label for="deliverySelect">Delivery Location</label>
+          <select id="deliverySelect" required>
+            <option value="" disabled selected>Select Delivery Zone / Town</option>
+
+            <optgroup label="Adenta & La Nkwantanang">
+              <option value="Adenta">Adenta</option>
+              <option value="Frafraha">Frafraha / Pantang</option>
+              <option value="Dodowa">Dodowa / Ayikuma</option>
+            </optgroup>
+
+            <optgroup label="Madina & Ga East">
+              <option value="Madina">Madina</option>
+              <option value="Haatso">Haatso / Agbogba</option>
+              <option value="Dome">Dome / Kwabenya</option>
+            </optgroup>
+
+            <optgroup label="East Legon & Ayawaso">
+              <option value="East Legon">East Legon / Shiashie</option>
+              <option value="Legon Campus">Legon Campus / UG</option>
+              <option value="Airport Residential">Airport / Roman Ridge</option>
+              <option value="Dzorwulu">Dzorwulu / Abelemkpe</option>
+            </optgroup>
+
+            <optgroup label="Accra Central & Metro">
+              <option value="Circle">Circle / Ridge</option>
+              <option value="Osu">Osu / Labone / Cantonments</option>
+              <option value="Accra Central">Accra Central / Makola</option>
+              <option value="La">La / Tse Addo</option>
+            </optgroup>
+
+            <optgroup label="Spintex & Tema Zone">
+              <option value="Spintex">Spintex Road</option>
+              <option value="Teshie">Teshie / Nungua</option>
+              <option value="Tema">Tema (Comm 1-25)</option>
+              <option value="Ashaiman">Ashaiman</option>
+              <option value="Kpone">Kpone / Prampram</option>
+            </optgroup>
+
+            <optgroup label="Ga West & South">
+              <option value="Achimota">Achimota / Lapaz</option>
+              <option value="Amasaman">Amasaman / Pokuase</option>
+              <option value="Dansoman">Dansoman / Korle Bu</option>
+              <option value="Weija">Weija / Kasoa Border</option>
+            </optgroup>
+
+            <optgroup label="Custom Area">
+              <option value="Other">Other Location</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="form-group" id="customDeliveryGroup" style="display: none;">
+          <label for="deliveryCustom">Specific Address / Sub-town</label>
+          <input type="text" id="deliveryCustom" placeholder="e.g. Pokuase ACP">
+        </div>
+
+        <div class="fare-box">
+          <div class="fare-label">Estimated Fare</div>
+          <div class="fare-amount" id="fareDisplay">GH₵ 0.00</div>
+        </div>
+
+        <div class="form-group">
+          <label for="senderPhone">Sender Phone Number</label>
+          <input type="tel" id="senderPhone" placeholder="024XXXXXXX" pattern="[0-9]{10}" required>
+        </div>
+
+        <div class="form-group">
+          <label for="receiverPhone">Receiver Phone Number</label>
+          <input type="tel" id="receiverPhone" placeholder="055XXXXXXX" pattern="[0-9]{10}" required>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn-submit">🚀 REQUEST DISPATCH</button>
+      </form>
+
+      <div id="trackingCard" class="tracking-card">
+        <h3 style="margin: 0 0 6px 0; color: #166534; text-align: center;">✅ Order Request Logged</h3>
+        <div style="text-align: center; margin-bottom: 12px;">
+          <span style="font-weight: 800; font-size: 15px; color: var(--navy-dark);" id="waybillDisplay">NEG-0000</span> | 
+          <span id="liveStatusBadge" class="status-badge">PENDING</span>
+        </div>
+
+        <a id="btnTrackLive" href="#" target="_blank" class="btn-action btn-track">🔍 Track Shipment Live</a>
+        <a id="btnSenderWA" href="#" target="_blank" class="btn-action wa-sender">💬 Send WhatsApp to Sender</a>
+        <a id="btnReceiverWA" href="#" target="_blank" class="btn-action wa-receiver">💬 Send WhatsApp to Receiver</a>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAy_NMeN3ZfmsfYs-6p48Byfszv4YpltaQ",
+      authDomain: "neg-express.firebaseapp.com",
+      databaseURL: "https://neg-express-default-rtdb.firebaseio.com",
+      projectId: "neg-express",
+      storageBucket: "neg-express.appspot.com",
+      messagingSenderId: "123456789012",
+      appId: "1:123456789012:web:abcdef1234567890"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const RATE_PER_KM = 3.0; 
+    let computedFareGhc = "0.00";
+
+    const OFFLINE_DISTANCES = {
+      "Adenta": { "Adenta": 3, "Frafraha": 4, "Dodowa": 19, "Madina": 5, "Haatso": 7, "Dome": 12, "East Legon": 10, "Legon Campus": 8, "Airport Residential": 14, "Dzorwulu": 13, "Circle": 17, "Osu": 18, "Accra Central": 20, "La": 17, "Spintex": 16, "Teshie": 18, "Tema": 22, "Ashaiman": 18, "Kpone": 28, "Achimota": 15, "Amasaman": 25, "Dansoman": 22, "Weija": 28 },
+      "Dodowa": { "Adenta": 19, "Frafraha": 15, "Dodowa": 3, "Madina": 22, "Haatso": 24, "Dome": 29, "East Legon": 27, "Legon Campus": 25, "Airport Residential": 31, "Dzorwulu": 30, "Circle": 34, "Osu": 35, "Accra Central": 37, "La": 34, "Spintex": 32, "Teshie": 33, "Tema": 26, "Ashaiman": 22, "Kpone": 32, "Achimota": 31, "Amasaman": 40, "Dansoman": 39, "Weija": 45 },
+      "Madina": { "Adenta": 5, "Frafraha": 7, "Dodowa": 22, "Madina": 3, "Haatso": 4, "Dome": 9, "East Legon": 7, "Legon Campus": 4, "Airport Residential": 11, "Dzorwulu": 10, "Circle": 14, "Osu": 15, "Accra Central": 17, "La": 14, "Spintex": 13, "Teshie": 16, "Tema": 24, "Ashaiman": 20, "Kpone": 30, "Achimota": 11, "Amasaman": 22, "Dansoman": 19, "Weija": 25 },
+      "East Legon": { "Adenta": 10, "Frafraha": 12, "Dodowa": 27, "Madina": 7, "Haatso": 8, "Dome": 11, "East Legon": 3, "Legon Campus": 4, "Airport Residential": 6, "Dzorwulu": 7, "Circle": 11, "Osu": 11, "Accra Central": 13, "La": 10, "Spintex": 9, "Teshie": 12, "Tema": 20, "Ashaiman": 17, "Kpone": 26, "Achimota": 10, "Amasaman": 23, "Dansoman": 18, "Weija": 24 },
+      "Tema": { "Adenta": 22, "Frafraha": 24, "Dodowa": 26, "Madina": 24, "Haatso": 26, "Dome": 28, "East Legon": 20, "Legon Campus": 22, "Airport Residential": 22, "Dzorwulu": 24, "Circle": 26, "Osu": 25, "Accra Central": 28, "La": 22, "Spintex": 15, "Teshie": 14, "Tema": 5, "Ashaiman": 8, "Kpone": 12, "Achimota": 27, "Amasaman": 38, "Dansoman": 32, "Weija": 36 },
+      "Circle": { "Adenta": 17, "Frafraha": 19, "Dodowa": 34, "Madina": 14, "Haatso": 14, "Dome": 10, "East Legon": 11, "Legon Campus": 12, "Airport Residential": 7, "Dzorwulu": 6, "Circle": 3, "Osu": 5, "Accra Central": 4, "La": 7, "Spintex": 15, "Teshie": 14, "Tema": 26, "Ashaiman": 25, "Kpone": 33, "Achimota": 7, "Amasaman": 18, "Dansoman": 10, "Weija": 15 },
+      "Amasaman": { "Adenta": 25, "Frafraha": 27, "Dodowa": 40, "Madina": 22, "Haatso": 20, "Dome": 15, "East Legon": 23, "Legon Campus": 21, "Airport Residential": 22, "Dzorwulu": 19, "Circle": 18, "Osu": 23, "Accra Central": 22, "La": 25, "Spintex": 28, "Teshie": 28, "Tema": 38, "Ashaiman": 34, "Kpone": 45, "Achimota": 13, "Amasaman": 4, "Dansoman": 22, "Weija": 20 },
+      "Weija": { "Adenta": 28, "Frafraha": 30, "Dodowa": 45, "Madina": 25, "Haatso": 24, "Dome": 20, "East Legon": 24, "Legon Campus": 24, "Airport Residential": 20, "Dzorwulu": 18, "Circle": 15, "Osu": 18, "Accra Central": 16, "La": 20, "Spintex": 25, "Teshie": 24, "Tema": 36, "Ashaiman": 35, "Kpone": 44, "Achimota": 15, "Amasaman": 20, "Dansoman": 12, "Weija": 4 }
+    };
+
+    const SUB_LOCATION_ALIAS = {
+      "oyibi": "Dodowa", "valley view": "Dodowa", "ayikuma": "Dodowa",
+      "pantang": "Adenta", "frafraha": "Adenta", "agbogba": "Madina",
+      "kwabenya": "Dome", "shiashie": "East Legon", "makola": "Accra Central",
+      "cantonments": "Osu", "labone": "Osu", "tse addo": "La",
+      "nungua": "Teshie", "prampram": "Kpone", "lapaz": "Achimota",
+      "pokuase": "Amasaman", "korle bu": "Dansoman", "kasoa": "Weija"
+    };
+
+    window.selectVehicle = function(val, element) {
+      document.querySelectorAll('.vehicle-option').forEach(el => el.classList.remove('selected'));
+      element.classList.add('selected');
+      document.getElementById('vehicleType').value = val;
+      calculateFare();
+    };
+
+    function handleLocationChange() {
+      const pickupVal = document.getElementById('pickupSelect').value;
+      const deliveryVal = document.getElementById('deliverySelect').value;
+
+      document.getElementById('customPickupGroup').style.display = (pickupVal === 'Other') ? 'block' : 'none';
+      document.getElementById('customDeliveryGroup').style.display = (deliveryVal === 'Other') ? 'block' : 'none';
+
+      calculateFare();
+    }
+
+    function resolveLocationKey(selectVal, customInputId) {
+      if (selectVal !== 'Other') return selectVal;
+
+      const typedText = document.getElementById(customInputId).value.trim().toLowerCase();
+      if (!typedText) return null;
+
+      for (let zone in OFFLINE_DISTANCES) {
+        if (typedText.includes(zone.toLowerCase())) return zone;
+      }
+      for (let alias in SUB_LOCATION_ALIAS) {
+        if (typedText.includes(alias)) return SUB_LOCATION_ALIAS[alias];
+      }
+
+      return "CUSTOM_UNKNOWN";
+    }
+
+    function calculateFare() {
+      const pickupSelect = document.getElementById('pickupSelect').value;
+      const deliverySelect = document.getElementById('deliverySelect').value;
+      const vehicle = document.getElementById('vehicleType').value;
+
+      const pickupKey = resolveLocationKey(pickupSelect, 'pickupCustom');
+      const deliveryKey = resolveLocationKey(deliverySelect, 'deliveryCustom');
+
+      if (!pickupKey || !deliveryKey) {
+        document.getElementById('fareDisplay').innerText = 'GH₵ 0.00';
+        computedFareGhc = "0.00";
+        return;
+      }
+
+      let distanceKm = 10;
+
+      if (OFFLINE_DISTANCES[pickupKey] && OFFLINE_DISTANCES[pickupKey][deliveryKey]) {
+        distanceKm = OFFLINE_DISTANCES[pickupKey][deliveryKey];
+      } else if (OFFLINE_DISTANCES[deliveryKey] && OFFLINE_DISTANCES[deliveryKey][pickupKey]) {
+        distanceKm = OFFLINE_DISTANCES[deliveryKey][pickupKey];
+      } else if (pickupKey === deliveryKey && pickupKey !== "CUSTOM_UNKNOWN") {
+        distanceKm = 4;
+      } else {
+        distanceKm = 12;
+      }
+
+      let vehicleMultiplier = 1.0;
+      if (vehicle === 'Sedan') vehicleMultiplier = 1.3;
+      if (vehicle === 'Van') vehicleMultiplier = 1.8;
+      if (vehicle === 'Truck') vehicleMultiplier = 2.5;
+
+      const totalFare = (distanceKm * RATE_PER_KM) * vehicleMultiplier;
+      computedFareGhc = totalFare.toFixed(2);
+
+      document.getElementById('fareDisplay').innerText = `GH₵ ${computedFareGhc}`;
+    }
+
+    function formatWhatsAppNumber(phone) {
+      if (!phone) return '';
+      let clean = phone.replace(/[^0-9]/g, '');
+      if (clean.startsWith('0')) clean = '233' + clean.substring(1);
+      return clean;
+    }
+
+    async function handleDispatch(event) {
+      event.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerText = "PROCESSING DISPATCH...";
+
+      const vehicleType = document.getElementById('vehicleType').value;
+      const pickupSelect = document.getElementById('pickupSelect').value;
+      const pickup = (pickupSelect === 'Other') ? document.getElementById('pickupCustom').value : pickupSelect;
+
+      const deliverySelect = document.getElementById('deliverySelect').value;
+      const delivery = (deliverySelect === 'Other') ? document.getElementById('deliveryCustom').value : deliverySelect;
+
+      const senderPhone = document.getElementById('senderPhone').value;
+      const receiverPhone = document.getElementById('receiverPhone').value;
+
+      const orderId = 'NEG-' + Math.floor(1000 + Math.random() * 9000);
+      const senderNum = formatWhatsAppNumber(senderPhone);
+      const receiverNum = formatWhatsAppNumber(receiverPhone);
+
+      const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+      const rawTrackingLink = `${baseUrl}track.html?waybill=${orderId}`;
+
+      // Update the header button dynamically with the generated waybill link
+      document.getElementById('fastTrackLink').href = rawTrackingLink;
+
+      const senderMsg = encodeURIComponent(
+        `📦 *NEG EXPRESS Dispatch Order Received*\n\n` +
+        `Your delivery request has been logged successfully!\n\n` +
+        `• *Waybill ID:* ${orderId}\n` +
+        `• *Vehicle:* ${vehicleType}\n` +
+        `• *Pickup:* ${pickup}\n` +
+        `• *Delivery:* ${delivery}\n` +
+        `• *Total Fare:* GH₵ ${computedFareGhc}\n\n` +
+        `Thank you for choosing NEG EXPRESS!`
+      );
+
+      const receiverMsg = encodeURIComponent(
+        `📦 *NEG EXPRESS Incoming Delivery Notice*\n\n` +
+        `A package is scheduled for delivery to you!\n\n` +
+        `• *Waybill ID:* ${orderId}\n` +
+        `• *From:* ${pickup}\n` +
+        `• *Destination:* ${delivery}\n\n` +
+        `NEG EXPRESS - Express Delivery Services`
+      );
+
+      const senderUrl = `https://wa.me/${senderNum}?text=${senderMsg}`;
+      const receiverUrl = `https://wa.me/${receiverNum}?text=${receiverMsg}`;
+
+      window.open(senderUrl, '_blank');
+
+      try {
+        await set(ref(db, 'orders/' + orderId), {
+          id: orderId,
+          vehicleType: vehicleType,
+          pickup: pickup,
+          delivery: delivery,
+          fareGhc: computedFareGhc,
+          senderPhone: senderPhone,
+          receiverPhone: receiverPhone,
+          status: 'PENDING',
+          createdAt: Date.now()
+        });
+
+        document.getElementById('waybillDisplay').innerText = orderId;
+        document.getElementById('btnTrackLive').href = rawTrackingLink;
+        document.getElementById('btnSenderWA').href = senderUrl;
+        document.getElementById('btnReceiverWA').href = receiverUrl;
+        document.getElementById('trackingCard').style.display = 'block';
+
+        onValue(ref(db, 'orders/' + orderId + '/status'), (snapshot) => {
+          const status = snapshot.val() || 'PENDING';
+          document.getElementById('liveStatusBadge').innerText = status;
+        });
+
+        document.getElementById('dispatchForm').reset();
+        document.getElementById('customPickupGroup').style.display = 'none';
+        document.getElementById('customDeliveryGroup').style.display = 'none';
+        document.getElementById('fareDisplay').innerText = 'GH₵ 0.00';
+
+      } catch (err) {
+        alert("Error saving dispatch: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = "🚀 REQUEST DISPATCH";
+      }
+    }
+
+    document.getElementById('pickupSelect').addEventListener('change', handleLocationChange);
+    document.getElementById('deliverySelect').addEventListener('change', handleLocationChange);
+    document.getElementById('pickupCustom').addEventListener('input', calculateFare);
+    document.getElementById('deliveryCustom').addEventListener('input', calculateFare);
+    document.getElementById('dispatchForm').addEventListener('submit', handleDispatch);
+  </script>
+</body>
+</html>

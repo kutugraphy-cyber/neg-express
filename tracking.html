@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a192f">
+  <title>NEG EXPRESS - Live Tracking</title>
+  <style>
+    :root {
+      --primary-blue: #0052cc;
+      --navy-dark: #0a192f;
+      --accent-gold: #f59e0b;
+      --bg: #f1f5f9;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      margin: 0;
+      padding: 16px;
+      color: var(--text);
+    }
+
+    .card {
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border-radius: 24px;
+      box-shadow: 0 20px 25px -5px rgba(10, 25, 47, 0.1);
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+
+    .brand-header-banner {
+      background: linear-gradient(135deg, var(--navy-dark) 0%, #1e3a8a 100%);
+      padding: 28px 20px 22px 20px;
+      text-align: center;
+    }
+
+    .brand-title {
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 900;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    .brand-title span { color: var(--accent-gold); }
+
+    .brand-tagline {
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    .content-container { padding: 24px 20px; }
+
+    .search-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      font-size: 15px;
+      text-transform: uppercase;
+    }
+
+    .btn-search {
+      padding: 12px 18px;
+      background: var(--primary-blue);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .status-card {
+      display: none;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .status-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 12px;
+    }
+
+    .waybill-id { font-size: 18px; font-weight: 900; color: var(--navy-dark); }
+
+    .status-badge {
+      padding: 6px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 800;
+      background: var(--accent-gold);
+      color: white;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .info-label { color: #64748b; font-weight: 600; }
+    .info-value { font-weight: 700; color: var(--navy-dark); }
+
+    .error-msg {
+      display: none;
+      color: #dc2626;
+      background: #fef2f2;
+      padding: 12px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 14px;
+      border: 1px solid #fecaca;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="brand-header-banner">
+      <h1 class="brand-title">NEG <span>EXPRESS</span></h1>
+      <div class="brand-tagline">Live Parcel Tracking</div>
+    </div>
+
+    <div class="content-container">
+      <div class="search-box">
+        <input type="text" id="waybillInput" placeholder="Enter Waybill ID (e.g. NEG-1024)">
+        <button class="btn-search" onclick="triggerSearch()">Track</button>
+      </div>
+
+      <div id="errorMessage" class="error-msg"></div>
+
+      <div id="statusCard" class="status-card">
+        <div class="status-header">
+          <span class="waybill-id" id="displayWaybill">-</span>
+          <span class="status-badge" id="displayStatus">PENDING</span>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">Vehicle Type:</span>
+          <span class="info-value" id="displayVehicle">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Pickup Location:</span>
+          <span class="info-value" id="displayPickup">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Delivery Location:</span>
+          <span class="info-value" id="displayDelivery">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Estimated Fare:</span>
+          <span class="info-value" id="displayFare">GH₵ 0.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAy_NMeN3ZfmsfYs-6p48Byfszv4YpltaQ",
+      authDomain: "neg-express.firebaseapp.com",
+      databaseURL: "https://neg-express-default-rtdb.firebaseio.com",
+      projectId: "neg-express",
+      storageBucket: "neg-express.appspot.com",
+      messagingSenderId: "123456789012",
+      appId: "1:123456789012:web:abcdef1234567890"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let activeUnsubscribe = null;
+
+    function trackOrder(waybillId) {
+      const errorDiv = document.getElementById('errorMessage');
+      const statusCard = document.getElementById('statusCard');
+
+      errorDiv.style.display = 'none';
+      
+      if (!waybillId) {
+        errorDiv.innerText = "Please enter a valid Waybill ID.";
+        errorDiv.style.display = 'block';
+        statusCard.style.display = 'none';
+        return;
+      }
+
+      if (activeUnsubscribe) {
+        activeUnsubscribe();
+      }
+
+      const orderRef = ref(db, 'orders/' + waybillId.trim().toUpperCase());
+
+      activeUnsubscribe = onValue(orderRef, (snapshot) => {
+        const data = snapshot.val();
+
+        if (data) {
+          document.getElementById('displayWaybill').innerText = data.id || waybillId;
+          document.getElementById('displayStatus').innerText = data.status || 'PENDING';
+          document.getElementById('displayVehicle').innerText = data.vehicleType || 'N/A';
+          document.getElementById('displayPickup').innerText = data.pickup || 'N/A';
+          document.getElementById('displayDelivery').innerText = data.delivery || 'N/A';
+          document.getElementById('displayFare').innerText = `GH₵ ${data.fareGhc || '0.00'}`;
+
+          statusCard.style.display = 'block';
+        } else {
+          statusCard.style.display = 'none';
+          errorDiv.innerText = `No dispatch found for Waybill ID: ${waybillId}`;
+          errorDiv.style.display = 'block';
+        }
+      }, (error) => {
+        statusCard.style.display = 'none';
+        errorDiv.innerText = "Error fetching order details: " + error.message;
+        errorDiv.style.display = 'block';
+      });
+    }
+
+    window.triggerSearch = function() {
+      const inputVal = document.getElementById('waybillInput').value;
+      trackOrder(inputVal);
+    };
+
+    // Auto-track if waybill URL parameter exists
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const waybillParam = urlParams.get('waybill');
+      if (waybillParam) {
+        document.getElementById('waybillInput').value = waybillParam;
+        trackOrder(waybillParam);
+      }
+    });
+  </script>
+</body>
+</html>
